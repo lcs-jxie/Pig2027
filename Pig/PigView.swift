@@ -33,7 +33,9 @@ struct PigView: View {
     // The points each player has banked. Banked points are safe.
     @State var playerOneScore: Int = 0
     @State var playerTwoScore: Int = 0
-
+    @State var playeroneSixStreak: Int = 0
+    @State var playertwoSixStreak: Int = 0
+    @State var winner: Int? = nil
     // The points collected so far on this turn.
     // They are not safe until the player clicks Hold.
     @State var turnTotal: Int = 0
@@ -124,11 +126,12 @@ struct PigView: View {
                     rollDie()
                 }
                 .buttonStyle(.borderedProminent)
-
+                .disabled(winner != nil)
                 Button("Hold", systemImage: "hand.raised.fill") {
                     hold()
                 }
                 .buttonStyle(.bordered)
+                .disabled(winner != nil)
             }
             .font(.title2)
             .bold()
@@ -155,7 +158,20 @@ struct PigView: View {
 
         // Show the matching die face. For a roll of 4, the symbol is "die.face.4.fill".
         dieSymbol = "die.face.\(roll).fill"
-
+        if currentPlayer == 1 {
+            playeroneSixStreak = roll == 6 ? playeroneSixStreak + 1 : 0
+        } else {
+            playertwoSixStreak = roll == 6 ? playertwoSixStreak + 1 : 0
+        }
+        let Streak = currentPlayer == 1 ? playeroneSixStreak : playertwoSixStreak
+        if Streak == 3 {
+            winner = currentPlayer
+            message = "Player \(currentPlayer) wins with 3 consecutive 6s!"
+            return
+            
+        }
+        
+    
         if roll == 1 {
             // A 1 wipes out the turn total and ends the turn.
             message = "Oh no, a 1! Player \(currentPlayer) loses \(turnTotal) points."
@@ -184,9 +200,11 @@ struct PigView: View {
     // Passes the turn to the other player.
     func switchPlayer() {
         if currentPlayer == 1 {
+            playeroneSixStreak = 0
             currentPlayer = 2
             turnColor = playerTwoColor
         } else {
+            playertwoSixStreak = 0
             currentPlayer = 1
             turnColor = playerOneColor
         }
@@ -201,6 +219,10 @@ struct PigView: View {
         turnColor = playerOneColor
         dieSymbol = "questionmark.square.fill"
         message = "Player 1 goes first. Click Roll to start."
+        
+        playeroneSixStreak = 0
+        playertwoSixStreak = 0
+        winner = nil
     }
 }
 

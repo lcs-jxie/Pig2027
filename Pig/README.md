@@ -12,7 +12,8 @@ A simple dice-rolling game where you race against the computer to reach 100 poin
 
 ## What I added
 
-- Nothing yet. This list grows as I work on Make It Yours.
+I added a hidden win condition to the original Pig dice game: a player wins immediately by rolling three 6s in a row during the same turn. The program tracks each player’s consecutive 6s and resets the count when they roll another number or their turn ends.
+
 
 ## Credits
 

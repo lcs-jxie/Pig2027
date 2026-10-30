@@ -1,8 +1,11 @@
 //
 //  PigView.swift
 //  Pig
-//
-//  WHAT THIS GAME DOES NOW
+// WHAT I ADDED
+// A player wins by rolling three 6s in a row during the same turn.
+// The game tracks each player's streak separately.
+// The streak resets when a player rolls a number other than 6,
+// when their turn ends, or when a new game starts.
 //  Pig is a dice game for two players who share one laptop.
 //  On your turn, roll the die as many times as you like.
 //  Each roll adds to your turn total.
@@ -33,8 +36,11 @@ struct PigView: View {
     // The points each player has banked. Banked points are safe.
     @State var playerOneScore: Int = 0
     @State var playerTwoScore: Int = 0
+    // Counts Player 1's consecutive rolls of 6 during the current turn.
     @State var playeroneSixStreak: Int = 0
+    // Counts Player 2's consecutive rolls of 6 during the current turn.
     @State var playertwoSixStreak: Int = 0
+    // Stores the winning player's number, or 0 when nobody has won.
     @State var winner: Int? = nil
     // The points collected so far on this turn.
     // They are not safe until the player clicks Hold.
@@ -95,10 +101,17 @@ struct PigView: View {
             Spacer()
 
             // Whose turn is it?
-            Text("Player \(currentPlayer), your turn")
-                .font(.title)
-                .bold()
-                .foregroundStyle(turnColor)
+            if let winner = winner {
+                Text("Player \(winner) wins!")
+                    .font(.title)
+                    .bold()
+                    .foregroundStyle(turnColor)
+            } else {
+                Text("Player \(currentPlayer), your turn")
+                    .font(.title)
+                    .bold()
+                    .foregroundStyle(turnColor)
+            }
 
             // The die.
             // TRY: Change the size of the die from 120 to something bigger or smaller.
@@ -112,11 +125,11 @@ struct PigView: View {
                 .monospacedDigit()
 
             Text(message)
-                .font(.headline)
-                .foregroundStyle(Color.secondary)
+                .font(winner != 0 ? .largeTitle : .headline)
+                .bold()
+                .foregroundStyle(winner != 0 ? .red : Color.secondary)
                 .multilineTextAlignment(.center)
                 .frame(minHeight: 44)
-
             Spacer()
 
             // The two buttons a player uses on their turn.
@@ -158,17 +171,34 @@ struct PigView: View {
 
         // Show the matching die face. For a roll of 4, the symbol is "die.face.4.fill".
         dieSymbol = "die.face.\(roll).fill"
+        // Update the current player's consecutive-6 count and store it in streak.
+        
         if currentPlayer == 1 {
-            playeroneSixStreak = roll == 6 ? playeroneSixStreak + 1 : 0
+            if roll == 6 {
+                playeroneSixStreak += 1
+            } else {
+                playeroneSixStreak = 0
+            }
         } else {
-            playertwoSixStreak = roll == 6 ? playertwoSixStreak + 1 : 0
+            if roll == 6 {
+                playertwoSixStreak += 1
+            } else {
+                playertwoSixStreak = 0
+            }
         }
-        let Streak = currentPlayer == 1 ? playeroneSixStreak : playertwoSixStreak
-        if Streak == 3 {
+
+        let streak: Int
+
+        if currentPlayer == 1 {
+            streak = playeroneSixStreak
+        } else {
+            streak = playertwoSixStreak
+        }
+
+        if streak == 3 {
             winner = currentPlayer
             message = "Player \(currentPlayer) wins with 3 consecutive 6s!"
             return
-            
         }
         
     
@@ -191,6 +221,17 @@ struct PigView: View {
             playerOneScore += turnTotal
         } else {
             playerTwoScore += turnTotal
+        }
+        // Check whether the current player has reached 100 points.
+        // If so, record the winner and end the game.
+        if currentPlayer == 1 && playerOneScore >= 100 {
+            winner = currentPlayer
+            message = "Player \(currentPlayer) wins by reaching 100 points!"
+            return
+        } else if currentPlayer == 2 && playerTwoScore >= 100 {
+            winner = currentPlayer
+            message = "Player \(currentPlayer) wins by reaching 100 points!"
+            return
         }
         message = "Player \(currentPlayer) banked \(turnTotal) points."
         turnTotal = 0
